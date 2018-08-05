@@ -1,2 +1,4 @@
 ﻿// Write an action using Console.WriteLine()
 // To debug: Console.Error.WriteLine("Debug messages...");
+
+// Link - https://www.codingame.com/ide/puzzle/hypersonic

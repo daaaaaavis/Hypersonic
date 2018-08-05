@@ -14,7 +14,9 @@ class Player
     static void Main(string[] args)
     {
         string[] inputs;
+        
         Grid grid = new Grid();
+               
         inputs = Console.ReadLine().Split(' ');
         int width = int.Parse(inputs[0]);
         int height = int.Parse(inputs[1]);
@@ -28,7 +30,7 @@ class Player
                 string row = Console.ReadLine();
                 grid.refreshGrid(row, i);
             }
-            grid.printGrid();
+            //grid.printGrid();
             int entities = int.Parse(Console.ReadLine());
             for (int i = 0; i < entities; i++)
             {
@@ -44,16 +46,19 @@ class Player
             // Write an action using Console.WriteLine()
             // To debug: Console.Error.WriteLine("Debug messages...");
 
-            Console.WriteLine("BOMB 6 5");
+            grid.selectClosestBox();
+            Box box = grid.selectClosestBox();
+            string nextCommand = "BOMB " + box.x + " " + box.y;
+
+            Console.WriteLine(nextCommand);
         }
     }
-    
-
 }
 
 class Grid
 {
     private char[,] gameGrid = new char[11,13];
+    private Box nextBox = new Box();
     
     public void refreshGrid(string row, int number)
     {
@@ -61,6 +66,30 @@ class Grid
         {
             gameGrid[number, i] = row[i];
         }
+    }
+    
+    public Box selectClosestBox() // jāpārtaisa, lai meklētu tiešām tuvāko, nevis pirmo no sākuma
+    {
+        for (int i = 0; i < 11; i++)
+        {
+             if (!DoubleLoop(i)) break;
+        }
+        return nextBox;
+    }
+    
+    public bool DoubleLoop(int i)
+    {
+        for (int j = 0; j < 13; j++)
+         {
+             // Console.Error.Write(gameGrid[i,j]);
+             if (gameGrid[i,j].Equals('0'))
+             {
+                 nextBox.y = i;
+                 nextBox.x = j;
+                 return false;
+             }
+         }
+         return true;
     }
     
     public void printGrid()
@@ -77,6 +106,12 @@ class Grid
          row = String.Empty;
         }
     }
+}
+
+class Box
+{
+    public int x;
+    public int y;
 }
 
 
