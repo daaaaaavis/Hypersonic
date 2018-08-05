@@ -14,6 +14,7 @@ class Player
     static void Main(string[] args)
     {
         string[] inputs;
+        Grid grid = new Grid();
         inputs = Console.ReadLine().Split(' ');
         int width = int.Parse(inputs[0]);
         int height = int.Parse(inputs[1]);
@@ -22,10 +23,12 @@ class Player
         // game loop
         while (true)
         {
-            for (int i = 0; i < height; i++)
+            for (int i = 0; i < height; i++) // height lines: a string row representing each row of the grid. Each character can be: "." an empty cell, "0" a box.
             {
                 string row = Console.ReadLine();
+                grid.refreshGrid(row, i);
             }
+            grid.printGrid();
             int entities = int.Parse(Console.ReadLine());
             for (int i = 0; i < entities; i++)
             {
@@ -44,4 +47,37 @@ class Player
             Console.WriteLine("BOMB 6 5");
         }
     }
+    
+
 }
+
+class Grid
+{
+    private char[,] gameGrid = new char[11,13];
+    
+    public void refreshGrid(string row, int number)
+    {
+        for (int i = 0; i < 13; i++)
+        {
+            gameGrid[number, i] = row[i];
+        }
+    }
+    
+    public void printGrid()
+    {
+        string row = String.Empty;
+        
+        for (int i = 0; i < 11; i++)
+        {
+         for (int j = 0; j < 13; j++)
+         {
+             row = row + gameGrid[i,j] + " ";
+         }
+         Console.Error.WriteLine(row);
+         row = String.Empty;
+        }
+    }
+}
+
+
+
