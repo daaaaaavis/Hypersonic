@@ -1,0 +1,14 @@
+﻿// Write an action using Console.WriteLine()
+// To debug: Console.Error.WriteLine("Debug messages...");
+
+// Link - https://www.codingame.com/ide/puzzle/hypersonic
+
+Bumbu var uzlikt tikai tad, kad iepriekšējā ir uzsprāgusi.
+
+array[11,13];
+pirmais index - rindas
+otrais index - kolonnas
+
+vajag čekot kur ir bumbas.
+kur ir - atzīmēt, ka attiecīgajos laukos vairs nav kastes.
+
