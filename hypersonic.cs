@@ -5,10 +5,6 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 
-/**
- * Auto-generated code below aims at helping you parse
- * the standard input according to the problem statement.
- **/
 class Player
 {
     static void Main(string[] args)
@@ -147,8 +143,6 @@ class Grid
     }
     // END FILL ADJACENT BOXES
 
-
-
     public Coordinates getBestCoordinates(Coordinates player)
     {
         int maxCount = 0;
@@ -197,7 +191,6 @@ class Grid
                 //Console.Error.WriteLine("Error2: " + closest.x + " " + closest.y + " " + closestDistance);
             }
         }
-
         //Console.Error.WriteLine("ErrorFinal: " + closest.x + " " + closest.y + " " + closestDistance);
         return closest;
     }
