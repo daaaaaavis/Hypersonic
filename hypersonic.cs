@@ -64,14 +64,14 @@ class Player
 
             // Write an action using Console.WriteLine()
             // To debug: Console.Error.WriteLine("Debug messages...");
-            grid.fillAdjacentBoxesArray(2);
+           grid.fillAdjacentBoxesArray(2);
             
             // grid.selectClosestBox();
             // Box box = grid.selectClosestBox();
             Coordinates coords = grid.getBestCoordinates(playerCoord);
             string nextCommand = "BOMB " + coords.y + " " + coords.x;
             
-            
+            //grid.printGrid();
             grid.printAdjacent();
             Console.WriteLine(nextCommand);
         }
@@ -149,101 +149,32 @@ class Grid
         {
          for (int j = 0; j < 13; j++) // kolonnas
          {
-             if (!gameArray[i,j].Equals('.'))
-             {
-                 adjacentBoxesArray[i,j] = 0;
-                 continue;
-             }
-            // REWRITE THIS S**T
-            // if ( i < bombRange )
-            // {
-            //     indexUp = i;
-            // }
-            // else 
-            // {
-            //     indexUp = bombRange;
-            // }
+            indexUp = ( i < bombRange ) ? i : bombRange;
+            indexLeft = ( j < bombRange ) ? j : bombRange;
+            indexDown = ( i > (10-bombRange) ) ? (10-i) : bombRange;
+            indexRight = ( j > (12-bombRange) ) ? (12-j) : bombRange;
 
-            // if ( j < bombRange )
-            // {
-            //     indexLeft = j;
-            // }
-            // else
-            // {
-            //     indexLeft = bombRange;
-            // }
-
-            // if ( i > (10-bombRange) )
-            // {
-            //     indexDown = 10 - i;
-            // } 
-            // else
-            // {
-            //     indexDown = bombRange;
-            // }
-
-            // if ( j > (12-bombRange) )
-            // {
-            //     indexRight = 12 - j;
-            // }
-            // else
-            // {
-            //     indexRight = bombRange;
-            // }
-
-
-            if ( i == 0 ) {
-                indexUp = 0;
-            } else if ( i == 1){
-                indexUp = 1;
-            } else {
-                indexUp = 2;
-            }
-
-            if ( j == 0 ) {
-                indexLeft = 0;
-            } else if ( j == 1){
-                indexLeft = 1;
-            } else { 
-                indexLeft = 2;
-            }
-
-            if ( i == 10 ) {
-                indexDown = 0;
-            } else if ( i == 9){
-                indexDown = 1;
-            } else {
-                indexDown = 2;
-            }
-
-            if ( j == 12 ) {
-                indexRight = 0;
-            } else if ( j == 11){
-                indexRight = 1;
-            } else {
-                indexRight = 2;
-            }     
-            // Console.Error.WriteLine(i + " " + j);
             // CHECK HOW MANY BOXES ARE ADJACENT
             for (int k = 1; k < indexUp+1; k++)
             {
-                if(gameArray[i-k,j].Equals('0')) adjacentCount++;
+                if(!gameArray[i-k,j].Equals('.')) adjacentCount++;
             }
-            // Console.Error.WriteLine(indexDown.ToString() + " " + i);
+            
             for (int k = 1; k < indexDown+1; k++)
             {
-                if(gameArray[i+k,j].Equals('0')) adjacentCount++;
+                if(!gameArray[i+k,j].Equals('.')) adjacentCount++;
             }
 
             for (int k = 1; k < indexLeft+1; k++)
             {
-                if(gameArray[i,j-k].Equals('0')) adjacentCount++;
+                if(!gameArray[i,j-k].Equals('.')) adjacentCount++;
             }
 
             for (int k = 1; k < indexRight+1; k++)
             {
-                if(gameArray[i,j+k].Equals('0')) adjacentCount++;
+                if(!gameArray[i,j+k].Equals('.')) adjacentCount++;
             }
+            //Console.Error.WriteLine("x = " + i + ", y = " + j + ", " + adjacentCount + " Up:" + indexUp + " Down:" + indexDown + " Left:" + indexLeft + " Right:" + indexRight);
             adjacentBoxesArray[i,j] = adjacentCount;
             adjacentCount = 0;
          }
@@ -311,11 +242,11 @@ class Grid
                 closest.x = list[i].x;
                 closest.y = list[i].y;
                 closestDistance = tempDistance;
-                Console.Error.WriteLine("Error2: " + closest.x + " " + closest.y + " " + closestDistance);
+                //Console.Error.WriteLine("Error2: " + closest.x + " " + closest.y + " " + closestDistance);
             }
         }
 
-        Console.Error.WriteLine("ErrorFinal: " + closest.x + " " + closest.y + " " + closestDistance);
+        //Console.Error.WriteLine("ErrorFinal: " + closest.x + " " + closest.y + " " + closestDistance);
         return closest;
     }
 }
