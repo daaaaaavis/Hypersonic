@@ -27,13 +27,12 @@ class Player
         // game loop
         while (true)
         {
-            for (int i = 0; i < height; i++) // height lines: a string row representing each row of the grid. Each character can be: "." an empty cell, "0" a box.
+            for (int i = 0; i < height; i++)
             {
                 string row = Console.ReadLine();
                 grid.refreshGrid(row, i);
                 // futureGrid.refreshGrid(row, i);
             }
-            // grid.printGrid();
             int entities = int.Parse(Console.ReadLine());
             for (int i = 0; i < entities; i++)
             {
@@ -57,22 +56,14 @@ class Player
                     // izreķināt futureGrid laukus
                     // param2 - explosion range for bombs
                     // ja ir bumba, vienkārši ar range sanuļļot apkārt
-
-
                 }
             }
-
-            // Write an action using Console.WriteLine()
-            // To debug: Console.Error.WriteLine("Debug messages...");
-           grid.fillAdjacentBoxesArray(2);
+            grid.fillAdjacentBoxesArray(2);
             
-            // grid.selectClosestBox();
-            // Box box = grid.selectClosestBox();
             Coordinates coords = grid.getBestCoordinates(playerCoord);
             string nextCommand = "BOMB " + coords.y + " " + coords.x;
             
-            //grid.printGrid();
-            grid.printAdjacent();
+            grid.printGrid();
             Console.WriteLine(nextCommand);
         }
     }
@@ -90,29 +81,6 @@ class Grid
         {
             gameArray[number, i] = row[i];
         }
-    }
-    
-    public Coordinates selectClosestBox()
-    {
-        for (int i = 0; i < 11; i++)
-        {
-             if (!DoubleLoop(i)) break;
-        }
-        return nextBox;
-    }
-    public bool DoubleLoop(int i)
-    {
-        for (int j = 0; j < 13; j++)
-         {
-             // Console.Error.Write(gameArray[i,j]);
-             if (!gameArray[i,j].Equals('.'))
-             {
-                 nextBox.y = i;
-                 nextBox.x = j;
-                 return false;
-             }
-         }
-         return true;
     }
 
     public int distance(Coordinates player, Coordinates point) // finds what is the distance between two points
@@ -139,10 +107,7 @@ class Grid
 
     public void fillAdjacentBoxesArray(int bombRange)
     {
-        int indexUp; // par cik var iet uz attiecīgo pusi
-        int indexDown;
-        int indexLeft;
-        int indexRight;
+        int indexUp, indexDown, indexLeft, indexRight; // par cik var iet uz attiecīgo pusi
         int adjacentCount = 0;
 
         for (int i = 0; i < 11; i++) // rindas
@@ -159,7 +124,7 @@ class Grid
             {
                 if(!gameArray[i-k,j].Equals('.')) adjacentCount++;
             }
-            
+
             for (int k = 1; k < indexDown+1; k++)
             {
                 if(!gameArray[i+k,j].Equals('.')) adjacentCount++;
@@ -182,20 +147,7 @@ class Grid
     }
     // END FILL ADJACENT BOXES
 
-    public void printAdjacent()
-    {
-        string row = String.Empty;
-        
-        for (int i = 0; i < 11; i++)
-        {
-         for (int j = 0; j < 13; j++)
-         {
-             row = row + adjacentBoxesArray[i,j] + " ";
-         }
-         Console.Error.WriteLine(row);
-         row = String.Empty;
-        }
-    }
+
 
     public Coordinates getBestCoordinates(Coordinates player)
     {
@@ -258,9 +210,7 @@ class Coordinates
     public int y;
     public int surroundingBoxes;
 
-    public Coordinates()
-    {  
-    }
+    public Coordinates(){ }
 
     public Coordinates(int X, int Y)
     {
