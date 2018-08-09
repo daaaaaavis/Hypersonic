@@ -5,7 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 
-class Player
+class Game 
 {
     static void Main(string[] args)
     {
@@ -65,6 +65,11 @@ class Player
             Console.WriteLine(nextCommand);
         }
     }
+}
+
+class Player
+{
+    
 }
 
 class Grid

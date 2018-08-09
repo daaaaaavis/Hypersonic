@@ -1,7 +1,6 @@
 ﻿// Write an action using Console.WriteLine()
 // To debug: Console.Error.WriteLine("Debug messages...");
 
-<<<<<<< HEAD
 // Link - https://www.codingame.com/ide/puzzle/hypersonic
 
 Bumbu var uzlikt tikai tad, kad iepriekšējā ir uzsprāgusi.
@@ -13,6 +12,16 @@ otrais index - kolonnas
 vajag čekot kur ir bumbas.
 kur ir - atzīmēt, ka attiecīgajos laukos vairs nav kastes.
 
-=======
-// Link - https://www.codingame.com/ide/puzzle/hypersonic
->>>>>>> 3efcebb5220b6bad18169fe6cc700d9f7714dadf
+Pārvietošanos, path'us utt. jārēķina pēc tagadējā. 
+Labākās vietas u.tml. jārēķina pēc future predictions.
+
+
+Kas bija iepriekšējā līgā?
+
+Gribēju uztaisīt 'future' grid, pēc kura ņemt vērā - kur iet. 
+Jāuzmanās - gan no savām, gan no pretinieku bumbām. Uzreiz ir problēma pirmajā gājienā - maz vietas. Jāizdomā - kur uzlikt un tad - kur notīties. Ja nav kur notīties, tad nevar likt utt. 
+Sienas - tur nevar iet, tās jāignorē. (jāizdomā kā). 
+
+Tagad ir pilnāks laukums - jārēķina kur vispār ir iespējams aiziet, un tad - kur labāk iet. 
+
+Varbūt jāmēģina uzķert doma - kā paredzēt nākotni. Vairākus gājienus uz priekšu. Kur nepaspēs pārējie, bet kur paspēju es - un kur ir labāk iet, vai uz ko labāk tiekties. 
