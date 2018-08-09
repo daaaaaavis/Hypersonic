@@ -27,7 +27,7 @@ class Player
             {
                 string row = Console.ReadLine();
                 grid.refreshGrid(row, i);
-                // futureGrid.refreshGrid(row, i);
+                futureGrid.refreshGrid(row, i);
             }
             int entities = int.Parse(Console.ReadLine());
             for (int i = 0; i < entities; i++)
@@ -49,6 +49,7 @@ class Player
 
                 if (entityType == 1)
                 {
+                    futureGrid.ZeroOutFutureIndexes(param2, x, y);
                     // izreķināt futureGrid laukus
                     // param2 - explosion range for bombs
                     // ja ir bumba, vienkārši ar range sanuļļot apkārt
@@ -58,7 +59,8 @@ class Player
             
             Coordinates coords = grid.getBestCoordinates(playerCoord);
             string nextCommand = "BOMB " + coords.y + " " + coords.x;
-            
+            futureGrid.printGrid();
+            Console.Error.WriteLine(" ");
             grid.printGrid();
             Console.WriteLine(nextCommand);
         }
@@ -141,7 +143,38 @@ class Grid
          }
         }
     }
-    // END FILL ADJACENT BOXES
+
+    public void ZeroOutFutureIndexes(int bombRange, int y, int x)
+    {
+            int indexUp, indexDown, indexLeft, indexRight; // par cik var iet uz attiecīgo pusi
+            // x - rinda
+            // y - kolonna
+            indexUp = ( x < bombRange ) ? x : bombRange;
+            indexLeft = ( y < bombRange ) ? y : bombRange;
+            indexDown = ( x > (10-bombRange) ) ? (10-x) : bombRange;
+            indexRight = ( y > (12-bombRange) ) ? (12-y) : bombRange;
+
+            // CHECK HOW MANY BOXES ARE ADJACENT
+            for (int k = 1; k < indexUp+1; k++)
+            {
+                gameArray[x-k,y] = '.';
+            }
+
+            for (int k = 1; k < indexDown+1; k++)
+            {
+                gameArray[x+k,y] = '.';
+            }
+
+            for (int k = 1; k < indexLeft+1; k++)
+            {
+                gameArray[x,y-k] = '.';
+            }
+
+            for (int k = 1; k < indexRight+1; k++)
+            {
+                gameArray[x,y+k] = '.';
+            }
+    }
 
     public Coordinates getBestCoordinates(Coordinates player)
     {
