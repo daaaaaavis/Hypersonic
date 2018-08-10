@@ -12,7 +12,6 @@ class Game
         string[] inputs;
         
         Grid grid = new Grid();         // spēles stāvoklis šobrīd
-        Grid futureGrid = new Grid();   // spēles stāvoklis, kas ir 'garantēti' nākotnē
         Player myPlayer = new Player();
                
         inputs = Console.ReadLine().Split(' ');
@@ -27,8 +26,7 @@ class Game
             for (int i = 0; i < height; i++)
             {
                 string row = Console.ReadLine();
-                grid.refreshGrid(row, i);
-                futureGrid.refreshGrid(row, i);
+                grid.refreshGrid(row, i, "present");
             }
             int entities = int.Parse(Console.ReadLine());
             for (int i = 0; i < entities; i++)
@@ -49,7 +47,7 @@ class Game
 
                 if (entityType == 1)
                 {
-                    futureGrid.ZeroOutFutureIndexes(param2, x, y);
+                    grid.ZeroOutFutureIndexes(param2, x, y);
                     // izreķināt futureGrid laukus
                     // param2 - explosion range for bombs
                     // ja ir bumba, vienkārši ar range sanuļļot apkārt
@@ -60,11 +58,10 @@ class Game
             
             Coordinates coords = grid.getBestCoordinates(myPlayer);
             string nextCommand = "BOMB " + coords.y + " " + coords.x;
-            futureGrid.printGrid();
             Console.Error.WriteLine(" ");
-            grid.printGrid();
+            grid.printGrid("present");
             Console.WriteLine(nextCommand);
-        }
+        } 
     }
 }
 
@@ -74,28 +71,51 @@ class Grid
     private char[,] futureGrid = new char[11, 13];
     private int[,] adjacentBoxesArray = new int[11, 13]; // cik katrām coord. ir kastes, ar attiecīgo bombRange
     
-    // uztaisīt ar dictionary
-    public void refreshGrid(string row, int number)
+    Dictionary <string, char[,]> grids = new Dictionary <string, char[,]>();
+
+    public Grid()
     {
-        for (int i = 0; i < 13; i++)
+        grids.Add("present", presentGrid);
+        grids.Add("future", futureGrid);
+    }
+
+    // uztaisīt ar dictionary
+    public void refreshGrid(string row, int number, string gridName)
+    {
+        if (grids.ContainsKey(gridName))
         {
-            presentGrid[number, i] = row[i];
+            for (int i = 0; i < 13; i++)
+            {
+                //presentGrid[number,i] = row[i];
+                grids[gridName][number, i] = row[i];
+            }
+        }
+        else
+        {
+            Console.Error.WriteLine("Error, couldn't refresh grid");
         }
     }
     
-    public void printGrid()
+    public void printGrid(string gridName)
     {
         string row = String.Empty;
-        
-        for (int i = 0; i < 11; i++)
+
+        if (grids.ContainsKey(gridName))
         {
-         for (int j = 0; j < 13; j++)
-         {
-             row = row + presentGrid[i,j] + " ";
-         }
-         Console.Error.WriteLine(row);
-         row = String.Empty;
+            for (int i = 0; i < 11; i++)
+            {
+            for (int j = 0; j < 13; j++)
+            {
+                row = row + grids[gridName][i,j] + " ";
+            }
+            Console.Error.WriteLine(row);
+            row = String.Empty;
+            }
         }
+        else
+        {
+            Console.Error.WriteLine("Couldn't print out the grid");
+        }        
     }
 
     public void fillAdjacentBoxesArray(int bombRange)
@@ -152,22 +172,22 @@ class Grid
             // CHECK HOW MANY BOXES ARE ADJACENT
             for (int k = 1; k < indexUp+1; k++)
             {
-                presentGrid[x-k,y] = '.';
+                futureGrid[x-k,y] = '.';
             }
 
             for (int k = 1; k < indexDown+1; k++)
             {
-                presentGrid[x+k,y] = '.';
+                futureGrid[x+k,y] = '.';
             }
 
             for (int k = 1; k < indexLeft+1; k++)
             {
-                presentGrid[x,y-k] = '.';
+                futureGrid[x,y-k] = '.';
             }
 
             for (int k = 1; k < indexRight+1; k++)
             {
-                presentGrid[x,y+k] = '.';
+                futureGrid[x,y+k] = '.';
             }
     }
  
