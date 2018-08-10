@@ -13,12 +13,13 @@ class Game
         
         Grid grid = new Grid();         // spēles stāvoklis šobrīd
         Grid futureGrid = new Grid();   // spēles stāvoklis, kas ir 'garantēti' nākotnē
-        Coordinates playerCoord = new Coordinates();
+        Player myPlayer = new Player();
                
         inputs = Console.ReadLine().Split(' ');
         int width = int.Parse(inputs[0]);
         int height = int.Parse(inputs[1]);
         int myId = int.Parse(inputs[2]);
+        myPlayer.id = myId;
 
         // game loop
         while (true)
@@ -40,11 +41,10 @@ class Game
                 int param1 = int.Parse(inputs[4]);
                 int param2 = int.Parse(inputs[5]);
 
-                if (entityType == 0 && owner == 0)
+                if (entityType == 0 && owner == 0) // Mans spēlētājs
                 {
-                    playerCoord.x = x;
-                    playerCoord.y = y;
-                    // Mans spēlētājs
+                    myPlayer.position.x = x;
+                    myPlayer.position.y = y;
                 }
 
                 if (entityType == 1)
@@ -55,9 +55,10 @@ class Game
                     // ja ir bumba, vienkārši ar range sanuļļot apkārt
                 }
             }
+
             grid.fillAdjacentBoxesArray(2);
             
-            Coordinates coords = grid.getBestCoordinates(playerCoord);
+            Coordinates coords = grid.getBestCoordinates(myPlayer);
             string nextCommand = "BOMB " + coords.y + " " + coords.x;
             futureGrid.printGrid();
             Console.Error.WriteLine(" ");
@@ -67,30 +68,19 @@ class Game
     }
 }
 
-class Player
-{
-    
-}
-
 class Grid
 {
-    private char[,] gameArray = new char[11,13];
-    private int[,] adjacentBoxesArray = new int[11, 13];
-    private Coordinates nextBox = new Coordinates();
+    private char[,] presentGrid = new char[11,13];
+    private char[,] futureGrid = new char[11, 13];
+    private int[,] adjacentBoxesArray = new int[11, 13]; // cik katrām coord. ir kastes, ar attiecīgo bombRange
     
+    // uztaisīt ar dictionary
     public void refreshGrid(string row, int number)
     {
         for (int i = 0; i < 13; i++)
         {
-            gameArray[number, i] = row[i];
+            presentGrid[number, i] = row[i];
         }
-    }
-
-    public int distance(Coordinates player, Coordinates point) // finds what is the distance between two points
-    {
-        var dx = player.x - point.x;
-        var dy = player.y - point.y;
-        return Math.Abs(dx) + Math.Abs(dy);
     }
     
     public void printGrid()
@@ -101,7 +91,7 @@ class Grid
         {
          for (int j = 0; j < 13; j++)
          {
-             row = row + gameArray[i,j] + " ";
+             row = row + presentGrid[i,j] + " ";
          }
          Console.Error.WriteLine(row);
          row = String.Empty;
@@ -125,22 +115,22 @@ class Grid
             // CHECK HOW MANY BOXES ARE ADJACENT
             for (int k = 1; k < indexUp+1; k++)
             {
-                if(!gameArray[i-k,j].Equals('.')) adjacentCount++;
+                if(!presentGrid[i-k,j].Equals('.')) adjacentCount++;
             }
 
             for (int k = 1; k < indexDown+1; k++)
             {
-                if(!gameArray[i+k,j].Equals('.')) adjacentCount++;
+                if(!presentGrid[i+k,j].Equals('.')) adjacentCount++;
             }
 
             for (int k = 1; k < indexLeft+1; k++)
             {
-                if(!gameArray[i,j-k].Equals('.')) adjacentCount++;
+                if(!presentGrid[i,j-k].Equals('.')) adjacentCount++;
             }
 
             for (int k = 1; k < indexRight+1; k++)
             {
-                if(!gameArray[i,j+k].Equals('.')) adjacentCount++;
+                if(!presentGrid[i,j+k].Equals('.')) adjacentCount++;
             }
             //Console.Error.WriteLine("x = " + i + ", y = " + j + ", " + adjacentCount + " Up:" + indexUp + " Down:" + indexDown + " Left:" + indexLeft + " Right:" + indexRight);
             adjacentBoxesArray[i,j] = adjacentCount;
@@ -162,26 +152,26 @@ class Grid
             // CHECK HOW MANY BOXES ARE ADJACENT
             for (int k = 1; k < indexUp+1; k++)
             {
-                gameArray[x-k,y] = '.';
+                presentGrid[x-k,y] = '.';
             }
 
             for (int k = 1; k < indexDown+1; k++)
             {
-                gameArray[x+k,y] = '.';
+                presentGrid[x+k,y] = '.';
             }
 
             for (int k = 1; k < indexLeft+1; k++)
             {
-                gameArray[x,y-k] = '.';
+                presentGrid[x,y-k] = '.';
             }
 
             for (int k = 1; k < indexRight+1; k++)
             {
-                gameArray[x,y+k] = '.';
+                presentGrid[x,y+k] = '.';
             }
     }
-
-    public Coordinates getBestCoordinates(Coordinates player)
+ 
+    public Coordinates getBestCoordinates(Player player)
     {
         int maxCount = 0;
         List<Coordinates> list = new List<Coordinates>();
@@ -212,15 +202,15 @@ class Grid
 
         closest.x = list[0].x;
         closest.y = list[0].y;
-        closestDistance = distance(player, closest);
+        closestDistance = player.distance(closest);
 
         Console.Error.WriteLine("Error: " + closest.x + " " + closest.y + " " + closestDistance);
-        Console.Error.WriteLine("Player: " + player.x + " " + player.y);
+        Console.Error.WriteLine("Player: " + player.position.x + " " + player.position.y);
         Console.Error.WriteLine("Closest: " + closest.x + " " + closest.y);
 
         for (int i = 0; i < list.Count(); i++)
         {
-            tempDistance = distance(list[i], player);
+            tempDistance = player.distance(list[i]);
             if (tempDistance < closestDistance)
             {
                 closest.x = list[i].x;
@@ -231,6 +221,31 @@ class Grid
         }
         //Console.Error.WriteLine("ErrorFinal: " + closest.x + " " + closest.y + " " + closestDistance);
         return closest;
+    }
+}
+
+class Player
+{
+    public int id;
+    public Coordinates position; // var taisīt kā private un ar getteriem/setteriem, bet ko no tā iegūs?
+    public char powerUp;
+
+
+    public Player (int x, int y)
+    {
+        position = new Coordinates(x, y);
+    }
+
+    public Player() 
+    { 
+        position = new Coordinates();
+    }
+
+    public int distance(Coordinates point) // finds what is the distance between two points
+    {
+        var dx = position.x - point.x;
+        var dy = position.y - point.y;
+        return Math.Abs(dx) + Math.Abs(dy);
     }
 }
 
