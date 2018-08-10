@@ -1,0 +1,25 @@
+width/height = size of the array
+myId = playerID
+
+entityType : 
+    0 - players
+    1 - bombs
+    2 - items
+
+owner : 
+    players - id of the player (0 or 1)
+    bombs - id of owner
+    items - ignore == 0
+
+param1 : 
+    players - number of bombs player can still place
+    bombs - number of rounds until bomb explores (!)
+    items - int representing the items
+
+param2 : 
+    players - current explosion range of players bombs
+    bombs - explosion range
+    items - ignore == 0
+
+in futureGrid :
+    H - explosion range

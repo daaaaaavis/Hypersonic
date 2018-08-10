@@ -10,8 +10,8 @@ class Game
     static void Main(string[] args)
     {
         string[] inputs;
-        
-        Grid grid = new Grid();         // spēles stāvoklis šobrīd
+        int turnCount = 0;
+        Grid grid = new Grid();
         Player myPlayer = new Player();
                
         inputs = Console.ReadLine().Split(' ');
@@ -23,10 +23,14 @@ class Game
         // game loop
         while (true)
         {
+            turnCount++;
+
             for (int i = 0; i < height; i++)
             {
                 string row = Console.ReadLine();
                 grid.refreshGrid(row, i, "present");
+                grid.refreshGrid(row, i, "future");
+                grid.fillReachable(row, i);
             }
             int entities = int.Parse(Console.ReadLine());
             for (int i = 0; i < entities; i++)
@@ -58,10 +62,22 @@ class Game
             
             Coordinates coords = grid.getBestCoordinates(myPlayer);
             string nextCommand = "BOMB " + coords.y + " " + coords.x;
-            Console.Error.WriteLine(" ");
+            TestMethod();
+            Console.Error.WriteLine("PRESENT: ");
             grid.printGrid("present");
+            Console.Error.WriteLine("FUTURE: ");
+            grid.printGrid("future");            
+            Console.Error.WriteLine("REACHABLE: ");
+            grid.printGrid("reachable");
+            grid.floodFill(0, 0, '1', '0');
+            grid.printGrid("reachable");            
             Console.WriteLine(nextCommand);
         } 
+    }
+
+    public static void TestMethod()
+    {
+        Console.Error.WriteLine("TEST");
     }
 }
 
@@ -70,16 +86,48 @@ class Grid
     private char[,] presentGrid = new char[11,13];
     private char[,] futureGrid = new char[11, 13];
     private int[,] adjacentBoxesArray = new int[11, 13]; // cik katrām coord. ir kastes, ar attiecīgo bombRange
-    
+    private char[,] reachableGrid = new char[11, 13];
+
     Dictionary <string, char[,]> grids = new Dictionary <string, char[,]>();
 
     public Grid()
     {
         grids.Add("present", presentGrid);
         grids.Add("future", futureGrid);
+        grids.Add("reachable", reachableGrid);
+
+        for (int i = 0; i < 11; i++)
+        {
+            for (int j = 0; j < 13; j++)
+            {
+                reachableGrid[i,j] = '0';
+            }
+        }
     }
 
-    // uztaisīt ar dictionary
+    public void fillReachable(string row, int number)
+    {
+        for (int i = 0; i < 13; i++)
+            {
+                //presentGrid[number,i] = row[i];
+                grids[reachable][number,i] = (row[i].Equals('.')) ? '0' : 'X';
+            }
+    }
+
+    public void floodFill(int x, int y, char fill, char old) // flood-fill algorithm
+    {
+        if ((x < 0) || (x >= 13)) return;
+        if ((y < 0) || (y >= 11)) return;
+        if (reachableGrid[y,x].Equals(old))
+        {
+            reachableGrid[y,x] = fill;
+            floodFill(x+1, y, fill, old);
+            floodFill(x, y+1, fill, old);
+            floodFill(x-1, y, fill, old);
+            floodFill(x, y-1, fill, old);
+        }
+    }
+
     public void refreshGrid(string row, int number, string gridName)
     {
         if (grids.ContainsKey(gridName))
@@ -118,7 +166,20 @@ class Grid
         }        
     }
 
-    public void fillAdjacentBoxesArray(int bombRange)
+    public bool isInDanger(Coordinates playerCoordinates)
+    {
+        return true;
+    }
+
+    public bool isSafeToPutBomb(Coordinates bombPosition)
+    {
+        // funkcija, kas aprēķina un uztaisa array(vai tamlīdzīgi)...
+        // kurās pozīcijās ir safe likt bumbu
+        // principā tas nozīmē arī - vai man pēc uzlikšanas būs kur palikt
+        return true;
+    }
+
+    public void fillAdjacentBoxesArray(int bombRange) // cik katrai rūtiņai 'blakus' ir kastes
     {
         int indexUp, indexDown, indexLeft, indexRight; // par cik var iet uz attiecīgo pusi
         int adjacentCount = 0;
@@ -159,7 +220,7 @@ class Grid
         }
     }
 
-    public void ZeroOutFutureIndexes(int bombRange, int y, int x)
+    public void ZeroOutFutureIndexes(int bombRange, int y, int x) // iznuļļo nākotnes bumbas vietas
     {
             int indexUp, indexDown, indexLeft, indexRight; // par cik var iet uz attiecīgo pusi
             // x - rinda
@@ -172,22 +233,22 @@ class Grid
             // CHECK HOW MANY BOXES ARE ADJACENT
             for (int k = 1; k < indexUp+1; k++)
             {
-                futureGrid[x-k,y] = '.';
+                futureGrid[x-k,y] = 'H';
             }
 
             for (int k = 1; k < indexDown+1; k++)
             {
-                futureGrid[x+k,y] = '.';
+                futureGrid[x+k,y] = 'H';
             }
 
             for (int k = 1; k < indexLeft+1; k++)
             {
-                futureGrid[x,y-k] = '.';
+                futureGrid[x,y-k] = 'H';
             }
 
             for (int k = 1; k < indexRight+1; k++)
             {
-                futureGrid[x,y+k] = '.';
+                futureGrid[x,y+k] = 'H';
             }
     }
  
@@ -224,9 +285,9 @@ class Grid
         closest.y = list[0].y;
         closestDistance = player.distance(closest);
 
-        Console.Error.WriteLine("Error: " + closest.x + " " + closest.y + " " + closestDistance);
         Console.Error.WriteLine("Player: " + player.position.x + " " + player.position.y);
         Console.Error.WriteLine("Closest: " + closest.x + " " + closest.y);
+        Console.Error.WriteLine("Closest distanceh: " + closestDistance);        
 
         for (int i = 0; i < list.Count(); i++)
         {
@@ -266,6 +327,18 @@ class Player
         var dx = position.x - point.x;
         var dy = position.y - point.y;
         return Math.Abs(dx) + Math.Abs(dy);
+    }
+
+    public void returnNextMove()
+    {
+        // if ()
+        // {
+        //     // MOVE
+        // }
+        // else
+        // {
+
+        // }
     }
 }
 
