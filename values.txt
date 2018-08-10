@@ -23,3 +23,8 @@ param2 :
 
 in futureGrid :
     H - explosion range
+
+sākuma-masīvā : 
+    . - tukšums
+    X - nekustamā siena
+    0-2 - kaste

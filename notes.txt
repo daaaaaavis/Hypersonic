@@ -18,10 +18,14 @@ Labākās vietas u.tml. jārēķina pēc future predictions.
 
 Kas bija iepriekšējā līgā?
 
-Gribēju uztaisīt 'future' grid, pēc kura ņemt vērā - kur iet. 
+Gribēju uztaisīt 'future' grid, pēc kura ņemt vērā - kur iet. Un UZREIZ IET UZ NĀKAMO POZĪCIJU!!!! (bet tas par 'labāko' pozīciju)
 Jāuzmanās - gan no savām, gan no pretinieku bumbām. Uzreiz ir problēma pirmajā gājienā - maz vietas. Jāizdomā - kur uzlikt un tad - kur notīties. Ja nav kur notīties, tad nevar likt utt. 
 Sienas - tur nevar iet, tās jāignorē. (jāizdomā kā). 
 
 Tagad ir pilnāks laukums - jārēķina kur vispār ir iespējams aiziet, un tad - kur labāk iet. 
 
 Varbūt jāmēģina uzķert doma - kā paredzēt nākotni. Vairākus gājienus uz priekšu. Kur nepaspēs pārējie, bet kur paspēju es - un kur ir labāk iet, vai uz ko labāk tiekties. 
+
+** Rēķinot next best move - jāņem vērā futureGrid, nevis tagadējais.
+
+Jābūt kaut kādam evaluation - kur likt, kur nelikt. Kur vislabāk, kur visliktak. 

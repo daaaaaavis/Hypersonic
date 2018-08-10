@@ -110,7 +110,7 @@ class Grid
         for (int i = 0; i < 13; i++)
             {
                 //presentGrid[number,i] = row[i];
-                grids[reachable][number,i] = (row[i].Equals('.')) ? '0' : 'X';
+                grids["reachable"][number,i] = (row[i].Equals('.')) ? '0' : 'X';
             }
     }
 
