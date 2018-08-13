@@ -51,17 +51,16 @@ class Game
                 if (entityType == 1)
                 {
                     grid.ZeroOutFutureIndexes(param2, x, y);
-                    // izreķināt futureGrid laukus
                     // param2 - explosion range for bombs
-                    // ja ir bumba, vienkārši ar range sanuļļot apkārt
                 }
             }
 
             grid.fillAdjacentBoxesArray(2);
             
             Coordinates coords = grid.getBestCoordinates(myPlayer);
+
             string nextCommand = "BOMB " + coords.y + " " + coords.x;
-            TestMethod();
+
             Console.Error.WriteLine("PRESENT: ");
             grid.printGrid("present");
             Console.Error.WriteLine("FUTURE: ");
@@ -83,10 +82,11 @@ class Game
 
 class Grid
 {
-    private char[,] presentGrid = new char[11,13];
+    private char[,] presentGrid = new char[11, 13];
     private char[,] futureGrid = new char[11, 13];
     private int[,] adjacentBoxesArray = new int[11, 13]; // cik katrām coord. ir kastes, ar attiecīgo bombRange
     private char[,] reachableGrid = new char[11, 13];
+    private char[,] simulationGrid = new char[11, 13];
 
     Dictionary <string, char[,]> grids = new Dictionary <string, char[,]>();
 
@@ -95,6 +95,7 @@ class Grid
         grids.Add("present", presentGrid);
         grids.Add("future", futureGrid);
         grids.Add("reachable", reachableGrid);
+        grids.Add("simulation", simulationGrid); 
 
         for (int i = 0; i < 11; i++)
         {
@@ -112,6 +113,10 @@ class Grid
         if (reachableGrid[y,x].Equals(old))
         {
             reachableGrid[y,x] = fill;
+
+            bool safe = isSafeToPutBomb(y, x, 2);
+            Console.Error.WriteLine("y : " + y + " x : " + x + " isSafe : " + safe);
+
             floodFill(x+1, y, fill, old);
             floodFill(x, y+1, fill, old);
             floodFill(x-1, y, fill, old);
@@ -126,7 +131,7 @@ class Grid
             for (int i = 0; i < 13; i++)
             {
                 grids[gridName][number, i] = row[i];
-                grids["reachable"][number,i] = (row[i].Equals('.')) ? '0' : 'X';
+                grids["reachable"][number,i] = (row[i].Equals('.')) ? '0' : 'X'; // fils reachable-array
             }
         }
         else
@@ -157,18 +162,72 @@ class Grid
         }        
     }
 
-    public bool isInDanger(Coordinates playerCoordinates)
+    public void simulateExplosion(int x, int y, int bombRange)
     {
-        return true;
+        // fills the grid with expected bomb radius 'H'
+        int indexUp, indexDown, indexLeft, indexRight;
+
+        indexUp = ( x < bombRange ) ? x : bombRange;
+        indexLeft = ( y < bombRange ) ? y : bombRange;
+        indexDown = ( x > (10-bombRange) ) ? (10-x) : bombRange;
+        indexRight = ( y > (12-bombRange) ) ? (12-y) : bombRange;
+
+        for (int k = 1; k < indexUp+1; k++)
+        {
+            reachableGrid[x-k,y] = 'H';
+        }
+
+        for (int k = 1; k < indexDown+1; k++)
+        {
+            reachableGrid[x+k,y] = 'H' ;
+        }
+
+        for (int k = 1; k < indexLeft+1; k++)
+        {
+            reachableGrid[x,y-k] = 'H' ;
+        }
+
+        for (int k = 1; k < indexRight+1; k++)
+        {
+            reachableGrid[x,y+k] = 'H' ;
+        }
+
+        reachableGrid[x,y] = 'H';
     }
 
-    public bool isSafeToPutBomb(Coordinates bombPosition)
+    public bool isInDanger(Coordinates playerCoordinates)
     {
-        
-        // funkcija, kas aprēķina un uztaisa array(vai tamlīdzīgi)...
-        // kurās pozīcijās ir safe likt bumbu
-        // principā tas nozīmē arī - vai man pēc uzlikšanas būs kur palikt
-        return true;
+        if (futureGrid[playerCoordinates.x, playerCoordinates.y].Equals('H')) return true;
+        return false;
+    }
+
+    public bool isSafeToPutBomb(int x, int y, int range)
+    {
+        simulateExplosion(x, y, range);
+
+        for (int i = 0; i < 11; i++) // rindas
+        {
+         for (int j = 0; j < 13; j++) // kolonnas
+         {
+            if (simulationGrid[i,j].Equals('1')) 
+            {
+                return true; // ir kur aiziet
+            }
+         }
+        }
+        resetArray("simulation");
+        return false;
+    }
+
+    public void resetArray(string arrayName)
+    {
+        for (int i = 0; i < 11; i++) // rindas
+        {
+         for (int j = 0; j < 13; j++) // kolonnas
+         {
+            grids[arrayName][i,j] = presentGrid[i,j];
+         }
+        }
     }
 
     public void fillAdjacentBoxesArray(int bombRange) // cik katrai rūtiņai 'blakus' ir kastes
@@ -242,6 +301,8 @@ class Grid
             {
                 futureGrid[x,y+k] = 'H';
             }
+
+            futureGrid[x,y] = 'H';
     }
  
     public Coordinates getBestCoordinates(Player player)
@@ -254,11 +315,13 @@ class Grid
          {
              if (adjacentBoxesArray[i,j] == maxCount) 
              {
+                 if (!isSafeToPutBomb(i,j, 2)) continue; // ja nav safe, ignorē
                  Coordinates temp = new Coordinates(i,j);
                  list.Add(temp);
              }
              if (adjacentBoxesArray[i,j] > maxCount)
              {
+                 if (!isSafeToPutBomb(i,j, 2)) continue;
                  maxCount = adjacentBoxesArray[i,j];
                  list.Clear();
                  Coordinates temp = new Coordinates(i,j);
@@ -294,6 +357,11 @@ class Grid
         }
         //Console.Error.WriteLine("ErrorFinal: " + closest.x + " " + closest.y + " " + closestDistance);
         return closest;
+    }
+
+    public Coordinates getBestCoordinates_2(Player player)
+    {
+
     }
 }
 
