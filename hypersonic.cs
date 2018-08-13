@@ -57,19 +57,24 @@ class Game
 
             grid.fillAdjacentBoxesArray(2);
             
-            Coordinates coords = grid.getBestCoordinates(myPlayer);
+            grid.floodFill(myPlayer.position.x, myPlayer.position.y, '1', '0');
+            Coordinates coords = grid.getBestCoordinates(myPlayer); // dabū labākās un "safe" koord. 
 
+            // jāizmanto MOVE funckija, lai neliktu bumbu uzreiz
+            // kad spēlētājs ir attiecīgajā pozīcijā, kas ir "best" - uzlikt bumbu
+            // kamēr bumba nav sprāgusi, izmantot simulateExplosion lai uzzinātu - kur nepieciešams atrasties
+            // kad bumba uzsprāgusi, sākt procesu no jauna
+
+            Console.Error.WriteLine("Best coord X : " + coords.x + "Best coord Y : " + coords.y);
             string nextCommand = "BOMB " + coords.y + " " + coords.x;
 
-            Console.Error.WriteLine("PRESENT: ");
-            grid.printGrid("present");
-            Console.Error.WriteLine("FUTURE: ");
-            grid.printGrid("future");            
-            Console.Error.WriteLine("REACHABLE: ");
-            grid.printGrid("reachable");
-            grid.floodFill(myPlayer.position.x, myPlayer.position.y, '1', '0');
-            Console.Error.WriteLine("REACHABLE, updated : ");
-            grid.printGrid("reachable");            
+            // Console.Error.WriteLine("PRESENT: ");
+            // grid.printGrid("present");
+            // Console.Error.WriteLine("FUTURE: ");
+            // grid.printGrid("future");            
+            // Console.Error.WriteLine("REACHABLE: ");
+            // grid.printGrid("reachable");
+  
             Console.WriteLine(nextCommand);
         } 
     }
@@ -112,10 +117,7 @@ class Grid
         if ((y < 0) || (y >= 11)) return;
         if (reachableGrid[y,x].Equals(old))
         {
-            reachableGrid[y,x] = fill;
-
-            bool safe = isSafeToPutBomb(y, x, 2);
-            Console.Error.WriteLine("y : " + y + " x : " + x + " isSafe : " + safe);
+            reachableGrid[y,x] = fill;        
 
             floodFill(x+1, y, fill, old);
             floodFill(x, y+1, fill, old);
@@ -137,6 +139,17 @@ class Grid
         else
         {
             Console.Error.WriteLine("Error, couldn't refresh grid");
+        }
+    }
+
+    public void copyArray(string from, string to)
+    {
+        for (int i = 0; i < 11; i++)
+        {
+            for (int j = 0; j < 13; j++)
+            {
+                grids[to][i,j] = grids[from][i,j];
+            }
         }
     }
     
@@ -174,25 +187,25 @@ class Grid
 
         for (int k = 1; k < indexUp+1; k++)
         {
-            reachableGrid[x-k,y] = 'H';
+            simulationGrid[x-k,y] = 'H';
         }
 
         for (int k = 1; k < indexDown+1; k++)
         {
-            reachableGrid[x+k,y] = 'H' ;
+            simulationGrid[x+k,y] = 'H' ;
         }
 
         for (int k = 1; k < indexLeft+1; k++)
         {
-            reachableGrid[x,y-k] = 'H' ;
+            simulationGrid[x,y-k] = 'H' ;
         }
 
         for (int k = 1; k < indexRight+1; k++)
         {
-            reachableGrid[x,y+k] = 'H' ;
+            simulationGrid[x,y+k] = 'H' ;
         }
 
-        reachableGrid[x,y] = 'H';
+        simulationGrid[x,y] = 'H';
     }
 
     public bool isInDanger(Coordinates playerCoordinates)
@@ -203,6 +216,7 @@ class Grid
 
     public bool isSafeToPutBomb(int x, int y, int range)
     {
+        copyArray("reachable", "simulation");
         simulateExplosion(x, y, range);
 
         for (int i = 0; i < 11; i++) // rindas
@@ -211,10 +225,13 @@ class Grid
          {
             if (simulationGrid[i,j].Equals('1')) 
             {
+                resetArray("simulation");
                 return true; // ir kur aiziet
             }
          }
         }
+        Console.Error.WriteLine("Simulations : ");
+        printGrid("simulation");
         resetArray("simulation");
         return false;
     }
@@ -309,27 +326,34 @@ class Grid
     {
         int maxCount = 0;
         List<Coordinates> list = new List<Coordinates>();
+
         for (int i = 0; i < 11; i++) // rindas
         {
          for (int j = 0; j < 13; j++) // kolonnas
          {
-             if (adjacentBoxesArray[i,j] == maxCount) 
+             if (reachableGrid[i,j].Equals('1'))
              {
-                 if (!isSafeToPutBomb(i,j, 2)) continue; // ja nav safe, ignorē
-                 Coordinates temp = new Coordinates(i,j);
-                 list.Add(temp);
+                if (adjacentBoxesArray[i,j] == maxCount) 
+                {
+                    if (!isSafeToPutBomb(i,j, 2)) continue; // ja nav safe, ignorē
+                    Coordinates temp = new Coordinates(i,j);
+                    list.Add(temp);
+                }
+                if (adjacentBoxesArray[i,j] > maxCount)
+                {             
+                    if (!isSafeToPutBomb(i,j, 2)) continue;
+                    maxCount = adjacentBoxesArray[i,j];
+                    list.Clear();
+                    Coordinates temp = new Coordinates(i,j);
+                    temp.surroundingBoxes = maxCount;
+                    list.Add(temp);
+                } 
              }
-             if (adjacentBoxesArray[i,j] > maxCount)
-             {
-                 if (!isSafeToPutBomb(i,j, 2)) continue;
-                 maxCount = adjacentBoxesArray[i,j];
-                 list.Clear();
-                 Coordinates temp = new Coordinates(i,j);
-                 temp.surroundingBoxes = maxCount;
-                 list.Add(temp);
-             } 
          }
         }
+        
+        Console.Error.WriteLine("REACHABLE: ");
+        printGrid("reachable");
         // IR LISTS AR VISĀM "LABĀKAJĀM" KOORD.
         // jāskatās, kurš punkts vistuvāk
         Coordinates closest = new Coordinates();
@@ -357,11 +381,6 @@ class Grid
         }
         //Console.Error.WriteLine("ErrorFinal: " + closest.x + " " + closest.y + " " + closestDistance);
         return closest;
-    }
-
-    public Coordinates getBestCoordinates_2(Player player)
-    {
-
     }
 }
 
