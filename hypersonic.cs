@@ -30,7 +30,6 @@ class Game
                 string row = Console.ReadLine();
                 grid.refreshGrid(row, i, "present");
                 grid.refreshGrid(row, i, "future");
-                grid.fillReachable(row, i);
             }
             int entities = int.Parse(Console.ReadLine());
             for (int i = 0; i < entities; i++)
@@ -69,7 +68,8 @@ class Game
             grid.printGrid("future");            
             Console.Error.WriteLine("REACHABLE: ");
             grid.printGrid("reachable");
-            grid.floodFill(0, 0, '1', '0');
+            grid.floodFill(myPlayer.position.x, myPlayer.position.y, '1', '0');
+            Console.Error.WriteLine("REACHABLE, updated : ");
             grid.printGrid("reachable");            
             Console.WriteLine(nextCommand);
         } 
@@ -105,16 +105,7 @@ class Grid
         }
     }
 
-    public void fillReachable(string row, int number)
-    {
-        for (int i = 0; i < 13; i++)
-            {
-                //presentGrid[number,i] = row[i];
-                grids["reachable"][number,i] = (row[i].Equals('.')) ? '0' : 'X';
-            }
-    }
-
-    public void floodFill(int x, int y, char fill, char old) // flood-fill algorithm
+    public void floodFill(int x, int y, char fill, char old)
     {
         if ((x < 0) || (x >= 13)) return;
         if ((y < 0) || (y >= 11)) return;
@@ -134,8 +125,8 @@ class Grid
         {
             for (int i = 0; i < 13; i++)
             {
-                //presentGrid[number,i] = row[i];
                 grids[gridName][number, i] = row[i];
+                grids["reachable"][number,i] = (row[i].Equals('.')) ? '0' : 'X';
             }
         }
         else
@@ -173,6 +164,7 @@ class Grid
 
     public bool isSafeToPutBomb(Coordinates bombPosition)
     {
+        
         // funkcija, kas aprēķina un uztaisa array(vai tamlīdzīgi)...
         // kurās pozīcijās ir safe likt bumbu
         // principā tas nozīmē arī - vai man pēc uzlikšanas būs kur palikt
@@ -287,7 +279,7 @@ class Grid
 
         Console.Error.WriteLine("Player: " + player.position.x + " " + player.position.y);
         Console.Error.WriteLine("Closest: " + closest.x + " " + closest.y);
-        Console.Error.WriteLine("Closest distanceh: " + closestDistance);        
+        Console.Error.WriteLine("Closest distance: " + closestDistance);        
 
         for (int i = 0; i < list.Count(); i++)
         {
