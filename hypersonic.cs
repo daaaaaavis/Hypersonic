@@ -32,6 +32,7 @@ class Game
                 string row = Console.ReadLine();
                 grid.refreshGrid(row, i, "present");
                 grid.refreshGrid(row, i, "future");
+                grid.refreshGrid(row, i, "reachable");
             }
             int entities = int.Parse(Console.ReadLine());
             for (int i = 0; i < entities; i++)
@@ -128,7 +129,7 @@ class Grid
         {
             for (int j = 0; j < 13; j++)
             {
-                reachableGrid[i,j] = '0';
+                reachableGrid[i,j] = '.';
             }
         }
     }
@@ -137,9 +138,9 @@ class Grid
     {
         if ((x < 0) || (x >= 13)) return;
         if ((y < 0) || (y >= 11)) return;
-        if (reachableGrid[y,x].Equals('0'))
+        if (reachableGrid[y,x].Equals('.'))
         {
-            reachableGrid[y,x] = '1';        
+            reachableGrid[y,x] = 'O';        
 
             floodFill(x+1, y);
             floodFill(x, y+1);
@@ -155,7 +156,7 @@ class Grid
             for (int i = 0; i < 13; i++)
             {
                 grids[gridName][number, i] = row[i];
-                grids["reachable"][number,i] = (row[i].Equals('.')) ? '0' : 'X'; // fils reachable-array
+                // grids["reachable"][number,i] = (row[i].Equals('.')) ? '0' : 'X'; // fils reachable-array
             }
         }
         else
@@ -210,21 +211,25 @@ class Grid
 
         for (int k = 1; k < indexUp+1; k++)
         {
+            if (presentGrid[x-k, y].Equals('X')) break; // uz attiecīgo pusi ir siena
             simulationGrid[x-k,y] = 'H';
         }
 
         for (int k = 1; k < indexDown+1; k++)
         {
+            if (presentGrid[x+k, y].Equals('X')) break; // uz attiecīgo pusi ir siena
             simulationGrid[x+k,y] = 'H' ;
         }
 
         for (int k = 1; k < indexLeft+1; k++)
         {
+            if (presentGrid[x, y-k].Equals('X')) break; // uz attiecīgo pusi ir siena
             simulationGrid[x,y-k] = 'H' ;
         }
 
         for (int k = 1; k < indexRight+1; k++)
         {
+            if (presentGrid[x,y+k].Equals('X')) break;
             simulationGrid[x,y+k] = 'H' ;
         }
 
@@ -246,7 +251,7 @@ class Grid
         {
          for (int j = 0; j < 13; j++) // kolonnas
          {
-            if (simulationGrid[i,j].Equals('1')) 
+            if (simulationGrid[i,j].Equals('O')) 
             {
                 resetArray("simulation");
                 return true; // ir kur aiziet
@@ -317,50 +322,58 @@ class Grid
         }
     }
 
-    public void ZeroOutFutureIndexes(int bombRange, int y, int x) // iznuļļo nākotnes bumbas vietas
+    public void ZeroOutFutureIndexes(int bombRange, int x, int y) // iznuļļo nākotnes bumbas vietas
     {
             int indexUp, indexDown, indexLeft, indexRight; // par cik var iet uz attiecīgo pusi
-            // x - rinda
-            // y - kolonna
-            indexUp = ( x < bombRange ) ? x : bombRange;
-            indexLeft = ( y < bombRange ) ? y : bombRange;
-            indexDown = ( x > (10-bombRange) ) ? (10-x) : bombRange;
-            indexRight = ( y > (12-bombRange) ) ? (12-y) : bombRange;
+            // x - kolonna
+            // y - rinda
+            indexUp = ( y < bombRange ) ? y : bombRange;
+            indexLeft = ( x < bombRange ) ? x : bombRange;
+            indexDown = ( y > (10-bombRange) ) ? (10-y) : bombRange;
+            indexRight = ( x > (12-bombRange) ) ? (12-x) : bombRange;
 
+            Console.Error.WriteLine("Up:" + indexUp + " Left:" + indexLeft + " Down:" + indexDown + " Right:" + indexRight);
+            Console.Error.WriteLine("BombRange:" + bombRange + " x:" + x + " y:" + y);
+            // printGrid("present");
             // CHECK HOW MANY BOXES ARE ADJACENT
             for (int k = 1; k < indexUp+1; k++)
             {
-                futureGrid[x-k,y] = 'H';
+                if (presentGrid[y-k, x].Equals('X')) break; // uz attiecīgo pusi ir siena
+                futureGrid[y-k,x] = 'H';
             }
-
+ 
             for (int k = 1; k < indexDown+1; k++)
             {
-                futureGrid[x+k,y] = 'H';
+                if (presentGrid[y+k, x].Equals('X')) break; // uz attiecīgo pusi ir siena
+                futureGrid[y+k,x] = 'H';
             }
 
             for (int k = 1; k < indexLeft+1; k++)
             {
-                futureGrid[x,y-k] = 'H';
+                if (presentGrid[y,x-k].Equals('X')) break; // uz attiecīgo pusi ir siena
+                futureGrid[y,x-k] = 'H';
             }
 
             for (int k = 1; k < indexRight+1; k++)
             {
-                futureGrid[x,y+k] = 'H';
+                if (presentGrid[y,x+k].Equals('X')) break; // uz attiecīgo pusi ir siena
+                futureGrid[y,x+k] = 'H';
             }
 
-            futureGrid[x,y] = 'H';
+            futureGrid[y,x] = 'H';
     }
  
     public Coordinates getBestCoordinates(Player player)
     {
         int maxCount = 0;
         List<Coordinates> list = new List<Coordinates>();
+        printGrid("reachable");
 
         for (int i = 0; i < 11; i++) // rindas
         {
          for (int j = 0; j < 13; j++) // kolonnas
          {
-             if (reachableGrid[i,j].Equals('1'))
+             if (reachableGrid[i,j].Equals('O'))
              {
                 if (adjacentBoxesArray[i,j] == maxCount) 
                 {
@@ -422,7 +435,7 @@ class Grid
         {
          for (int j = 0; j < 13; j++) // kolonnas
          {
-             if (reachableGrid[i,j].Equals('1') && !futureGrid[i,j].Equals('H'))
+             if (reachableGrid[i,j].Equals('O') && !futureGrid[i,j].Equals('H'))
              {
                     // ja var aiziet, un ja nav bumba 
                     Coordinates temp = new Coordinates(j,i);
@@ -442,7 +455,7 @@ class Grid
         for (int i = 0; i < list.Count(); i++)
         {
             tempDistance = player.distance(list[i]);
-            if (tempDistance < closestDistance && reachableGrid[list[i].x,list[i].y].Equals('1'))
+            if (tempDistance < closestDistance && reachableGrid[list[i].y,list[i].x].Equals('O'))
             {
                 closest.x = list[i].x;
                 closest.y = list[i].y;
@@ -481,14 +494,6 @@ class Player
 
     public void returnNextMove()
     {
-        // if ()
-        // {
-        //     // MOVE
-        // }
-        // else
-        // {
-
-        // }
     }
 }
 
