@@ -16,7 +16,9 @@ static class Global
     public const char BOX0 = '0';
     public const char BOX1 = '1';
     public const char BOX2 = '2';
-
+    public const char EMPTY_CELL = '.';
+    public const char POWERUP_RANGE = '5';
+    public const char POWERUP_EXTRA = '6';
 }
 
 class Game 
@@ -48,6 +50,7 @@ class Game
                 grid.refreshGrid(row, i, "future");
                 grid.refreshGrid(row, i, "reachable");
             }
+
             int entities = int.Parse(Console.ReadLine());
             for (int i = 0; i < entities; i++)
             {
@@ -77,6 +80,18 @@ class Game
                         check = true;
                     }
                     // param2 - explosion range for bombs
+                }
+
+                if (entityType == 2)
+                {
+                    if (param1 == 1)
+                    {
+                        grid.changeGridValue(x, y, Global.POWERUP_RANGE); 
+                    } 
+                    else if (param1 == 2)
+                    {
+                        grid.changeGridValue(x, y, Global.POWERUP_EXTRA);
+                    }
                 }
             }
 
@@ -143,7 +158,7 @@ class Grid
         {
             for (int j = 0; j < Global.WIDTH; j++)
             {
-                reachableGrid[i,j] = '.';
+                reachableGrid[i,j] = Global.EMPTY_CELL;
             }
         }
     }
@@ -152,7 +167,7 @@ class Grid
     {
         if ((x < 0) || (x >= Global.WIDTH)) return;
         if ((y < 0) || (y >= Global.HEIGHT)) return;
-        if (reachableGrid[y,x].Equals('.'))
+        if (reachableGrid[y,x].Equals(Global.EMPTY_CELL))
         {
             reachableGrid[y,x] = Global.REACHABLE;        
 
@@ -170,7 +185,7 @@ class Grid
             for (int i = 0; i < Global.WIDTH; i++)
             {
                 grids[gridName][number, i] = row[i];
-                // grids["reachable"][number,i] = (row[i].Equals('.')) ? Global.BOX2 : Global.WALL; // fils reachable-array
+                // grids["reachable"][number,i] = (row[i].Equals(Global.EMPTY_CELL)) ? Global.BOX2 : Global.WALL; // fils reachable-array
             }
         }
         else
@@ -289,6 +304,11 @@ class Grid
         }
     }
 
+    public void changeGridValue(int x, int y, char value)
+    {
+        presentGrid[y,x] = value;
+    }
+
     public void fillAdjacentBoxesArray(int bombRange) // cik katrai rūtiņai 'blakus' ir kastes
     {
         int indexUp, indexDown, indexLeft, indexRight; // par cik var iet uz attiecīgo pusi
@@ -353,6 +373,7 @@ class Grid
             for (int k = 1; k < indexUp+1; k++)
             {
                 if (presentGrid[y-k, x].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
+                // if (presentGrid[y-k, x].Equals())
                 futureGrid[y-k,x] = Global.EXPLOSION;
             }
  
