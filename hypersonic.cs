@@ -5,6 +5,20 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 
+static class Global
+{
+    public const int HEIGHT = 11;
+    public const int WIDTH = 13;
+
+    public const char EXPLOSION = 'H';
+    public const char REACHABLE = 'R';
+    public const char WALL = 'X';
+    public const char BOX0 = '0';
+    public const char BOX1 = '1';
+    public const char BOX2 = '2';
+
+}
+
 class Game 
 {
     static void Main(string[] args)
@@ -109,11 +123,11 @@ class Game
 
 class Grid
 {
-    private char[,] presentGrid = new char[11, 13];
-    private char[,] futureGrid = new char[11, 13];
-    private int[,] adjacentBoxesArray = new int[11, 13]; // cik katrām coord. ir kastes, ar attiecīgo bombRange
-    private char[,] reachableGrid = new char[11, 13];
-    private char[,] simulationGrid = new char[11, 13];
+    private char[,] presentGrid = new char[Global.HEIGHT, Global.WIDTH];
+    private char[,] futureGrid = new char[Global.HEIGHT, Global.WIDTH];
+    private int[,] adjacentBoxesArray = new int[Global.HEIGHT, Global.WIDTH]; // cik katrām coord. ir kastes, ar attiecīgo bombRange
+    private char[,] reachableGrid = new char[Global.HEIGHT, Global.WIDTH];
+    private char[,] simulationGrid = new char[Global.HEIGHT, Global.WIDTH];
     List<Coordinates> bombList = new List<Coordinates>();
 
     Dictionary <string, char[,]> grids = new Dictionary <string, char[,]>();
@@ -125,9 +139,9 @@ class Grid
         grids.Add("reachable", reachableGrid);
         grids.Add("simulation", simulationGrid); 
 
-        for (int i = 0; i < 11; i++)
+        for (int i = 0; i < Global.HEIGHT; i++)
         {
-            for (int j = 0; j < 13; j++)
+            for (int j = 0; j < Global.WIDTH; j++)
             {
                 reachableGrid[i,j] = '.';
             }
@@ -136,11 +150,11 @@ class Grid
 
     public void floodFill(int x, int y)
     {
-        if ((x < 0) || (x >= 13)) return;
-        if ((y < 0) || (y >= 11)) return;
+        if ((x < 0) || (x >= Global.WIDTH)) return;
+        if ((y < 0) || (y >= Global.HEIGHT)) return;
         if (reachableGrid[y,x].Equals('.'))
         {
-            reachableGrid[y,x] = 'O';        
+            reachableGrid[y,x] = Global.REACHABLE;        
 
             floodFill(x+1, y);
             floodFill(x, y+1);
@@ -153,10 +167,10 @@ class Grid
     {
         if (grids.ContainsKey(gridName))
         {
-            for (int i = 0; i < 13; i++)
+            for (int i = 0; i < Global.WIDTH; i++)
             {
                 grids[gridName][number, i] = row[i];
-                // grids["reachable"][number,i] = (row[i].Equals('.')) ? '0' : 'X'; // fils reachable-array
+                // grids["reachable"][number,i] = (row[i].Equals('.')) ? Global.BOX2 : Global.WALL; // fils reachable-array
             }
         }
         else
@@ -167,9 +181,9 @@ class Grid
 
     public void copyArray(string from, string to)
     {
-        for (int i = 0; i < 11; i++)
+        for (int i = 0; i < Global.HEIGHT; i++)
         {
-            for (int j = 0; j < 13; j++)
+            for (int j = 0; j < Global.WIDTH; j++)
             {
                 grids[to][i,j] = grids[from][i,j];
             }
@@ -183,9 +197,9 @@ class Grid
 
         if (grids.ContainsKey(gridName))
         {
-            for (int i = 0; i < 11; i++)
+            for (int i = 0; i < Global.HEIGHT; i++)
             {
-            for (int j = 0; j < 13; j++)
+            for (int j = 0; j < Global.WIDTH; j++)
             {
                 row = row + grids[gridName][i,j] + " ";
             }
@@ -201,7 +215,7 @@ class Grid
 
     public void simulateExplosion(int x, int y, int bombRange)
     {
-        // fills the grid with expected bomb radius 'H'
+        // fills the grid with expected bomb radius Global.EXPLOSION
         int indexUp, indexDown, indexLeft, indexRight;
 
         indexUp = ( x < bombRange ) ? x : bombRange;
@@ -211,34 +225,34 @@ class Grid
 
         for (int k = 1; k < indexUp+1; k++)
         {
-            if (presentGrid[x-k, y].Equals('X')) break; // uz attiecīgo pusi ir siena
-            simulationGrid[x-k,y] = 'H';
+            if (presentGrid[x-k, y].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
+            simulationGrid[x-k,y] = Global.EXPLOSION;
         }
 
         for (int k = 1; k < indexDown+1; k++)
         {
-            if (presentGrid[x+k, y].Equals('X')) break; // uz attiecīgo pusi ir siena
-            simulationGrid[x+k,y] = 'H' ;
+            if (presentGrid[x+k, y].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
+            simulationGrid[x+k,y] = Global.EXPLOSION ;
         }
 
         for (int k = 1; k < indexLeft+1; k++)
         {
-            if (presentGrid[x, y-k].Equals('X')) break; // uz attiecīgo pusi ir siena
-            simulationGrid[x,y-k] = 'H' ;
+            if (presentGrid[x, y-k].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
+            simulationGrid[x,y-k] = Global.EXPLOSION ;
         }
 
         for (int k = 1; k < indexRight+1; k++)
         {
-            if (presentGrid[x,y+k].Equals('X')) break;
-            simulationGrid[x,y+k] = 'H' ;
+            if (presentGrid[x,y+k].Equals(Global.WALL)) break;
+            simulationGrid[x,y+k] = Global.EXPLOSION ;
         }
 
-        simulationGrid[x,y] = 'H';
+        simulationGrid[x,y] = Global.EXPLOSION;
     }
 
     public bool isInDanger(Coordinates playerCoordinates)
     {
-        if (futureGrid[playerCoordinates.x, playerCoordinates.y].Equals('H')) return true;
+        if (futureGrid[playerCoordinates.x, playerCoordinates.y].Equals(Global.EXPLOSION)) return true;
         return false;
     }
 
@@ -247,11 +261,11 @@ class Grid
         copyArray("reachable", "simulation");
         simulateExplosion(x, y, range);
 
-        for (int i = 0; i < 11; i++) // rindas
+        for (int i = 0; i < Global.HEIGHT; i++) // rindas
         {
-         for (int j = 0; j < 13; j++) // kolonnas
+         for (int j = 0; j < Global.WIDTH; j++) // kolonnas
          {
-            if (simulationGrid[i,j].Equals('O')) 
+            if (simulationGrid[i,j].Equals(Global.REACHABLE)) 
             {
                 resetArray("simulation");
                 return true; // ir kur aiziet
@@ -266,9 +280,9 @@ class Grid
 
     public void resetArray(string arrayName)
     {
-        for (int i = 0; i < 11; i++) // rindas
+        for (int i = 0; i < Global.HEIGHT; i++) // rindas
         {
-         for (int j = 0; j < 13; j++) // kolonnas
+         for (int j = 0; j < Global.WIDTH; j++) // kolonnas
          {
             grids[arrayName][i,j] = presentGrid[i,j];
          }
@@ -282,9 +296,9 @@ class Grid
         int element;
 
         printGrid("present");
-        for (int i = 0; i < 11; i++) // rindas
+        for (int i = 0; i < Global.HEIGHT; i++) // rindas
         {
-         for (int j = 0; j < 13; j++) // kolonnas
+         for (int j = 0; j < Global.WIDTH; j++) // kolonnas
          {
             indexUp = ( i < bombRange ) ? i : bombRange;
             indexLeft = ( j < bombRange ) ? j : bombRange;
@@ -295,25 +309,25 @@ class Grid
             for (int k = 1; k < indexUp+1; k++)
             {
                 element = presentGrid[i-k,j];
-                if(element.Equals('0') || element.Equals('1') || element.Equals('2')) adjacentCount++;
+                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2)) adjacentCount++;
             }
 
             for (int k = 1; k < indexDown+1; k++)
             {
                 element = presentGrid[i+k,j];
-                if(element.Equals('0') || element.Equals('1') || element.Equals('2')) adjacentCount++;
+                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2)) adjacentCount++;
             }
 
             for (int k = 1; k < indexLeft+1; k++)
             {
                 element = presentGrid[i,j-k];
-                if(element.Equals('0') || element.Equals('1') || element.Equals('2')) adjacentCount++;
+                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2)) adjacentCount++;
             }
 
             for (int k = 1; k < indexRight+1; k++)
             {
                 element = presentGrid[i,j+k];
-                if(element.Equals('0') || element.Equals('1') || element.Equals('2')) adjacentCount++;
+                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2)) adjacentCount++;
             }
             //Console.Error.WriteLine("x = " + i + ", y = " + j + ", " + adjacentCount + " Up:" + indexUp + " Down:" + indexDown + " Left:" + indexLeft + " Right:" + indexRight);
             adjacentBoxesArray[i,j] = adjacentCount;
@@ -338,29 +352,29 @@ class Grid
             // CHECK HOW MANY BOXES ARE ADJACENT
             for (int k = 1; k < indexUp+1; k++)
             {
-                if (presentGrid[y-k, x].Equals('X')) break; // uz attiecīgo pusi ir siena
-                futureGrid[y-k,x] = 'H';
+                if (presentGrid[y-k, x].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
+                futureGrid[y-k,x] = Global.EXPLOSION;
             }
  
             for (int k = 1; k < indexDown+1; k++)
             {
-                if (presentGrid[y+k, x].Equals('X')) break; // uz attiecīgo pusi ir siena
-                futureGrid[y+k,x] = 'H';
+                if (presentGrid[y+k, x].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
+                futureGrid[y+k,x] = Global.EXPLOSION;
             }
 
             for (int k = 1; k < indexLeft+1; k++)
             {
-                if (presentGrid[y,x-k].Equals('X')) break; // uz attiecīgo pusi ir siena
-                futureGrid[y,x-k] = 'H';
+                if (presentGrid[y,x-k].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
+                futureGrid[y,x-k] = Global.EXPLOSION;
             }
 
             for (int k = 1; k < indexRight+1; k++)
             {
-                if (presentGrid[y,x+k].Equals('X')) break; // uz attiecīgo pusi ir siena
-                futureGrid[y,x+k] = 'H';
+                if (presentGrid[y,x+k].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
+                futureGrid[y,x+k] = Global.EXPLOSION;
             }
 
-            futureGrid[y,x] = 'H';
+            futureGrid[y,x] = Global.EXPLOSION;
     }
  
     public Coordinates getBestCoordinates(Player player)
@@ -369,11 +383,11 @@ class Grid
         List<Coordinates> list = new List<Coordinates>();
         printGrid("reachable");
 
-        for (int i = 0; i < 11; i++) // rindas
+        for (int i = 0; i < Global.HEIGHT; i++) // rindas
         {
-         for (int j = 0; j < 13; j++) // kolonnas
+         for (int j = 0; j < Global.WIDTH; j++) // kolonnas
          {
-             if (reachableGrid[i,j].Equals('O'))
+             if (reachableGrid[i,j].Equals(Global.REACHABLE))
              {
                 if (adjacentBoxesArray[i,j] == maxCount) 
                 {
@@ -411,7 +425,7 @@ class Grid
         for (int i = 0; i < list.Count(); i++)
         {
             tempDistance = player.distance(list[i]);
-            if (tempDistance < closestDistance && reachableGrid[list[i].x , list[i].y].Equals('1'))
+            if (tempDistance < closestDistance && reachableGrid[list[i].x , list[i].y].Equals('R'))
             {
                 closest.x = list[i].x;
                 closest.y = list[i].y;
@@ -431,11 +445,11 @@ class Grid
         printGrid("reachable");
         printGrid("future");
 
-        for (int i = 0; i < 11; i++) // rindas
+        for (int i = 0; i < Global.HEIGHT; i++) // rindas
         {
-         for (int j = 0; j < 13; j++) // kolonnas
+         for (int j = 0; j < Global.WIDTH; j++) // kolonnas
          {
-             if (reachableGrid[i,j].Equals('O') && !futureGrid[i,j].Equals('H'))
+             if (reachableGrid[i,j].Equals(Global.REACHABLE) && !futureGrid[i,j].Equals(Global.EXPLOSION))
              {
                     // ja var aiziet, un ja nav bumba 
                     Coordinates temp = new Coordinates(j,i);
@@ -455,7 +469,7 @@ class Grid
         for (int i = 0; i < list.Count(); i++)
         {
             tempDistance = player.distance(list[i]);
-            if (tempDistance < closestDistance && reachableGrid[list[i].y,list[i].x].Equals('O'))
+            if (tempDistance < closestDistance && reachableGrid[list[i].y,list[i].x].Equals(Global.REACHABLE))
             {
                 closest.x = list[i].x;
                 closest.y = list[i].y;
