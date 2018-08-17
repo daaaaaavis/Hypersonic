@@ -74,10 +74,15 @@ class Game
                     grid.ZeroOutFutureIndexes(param2, x, y);
                     if ( owner == 0 )
                     {
+                        // ja bumba ir mana, tad atrod labāko vietu kur nostāties gaidot sprādzienu
                         grid.floodFill(myPlayer.position.x, myPlayer.position.y);
                         Coordinates coordsX = grid.getBestEscape(myPlayer);
                         Console.WriteLine("MOVE " + coordsX.x + " " + coordsX.y);
                         check = true;
+                    }
+                    else
+                    {               
+                        // ja citu bumba - uzlikt kur nevar iet un no kā izvairīties
                     }
                     // param2 - explosion range for bombs
                 }
@@ -112,19 +117,6 @@ class Game
                 Console.Error.WriteLine(" player x = " + myPlayer.position.x + " player y = " + myPlayer.position.y + " coords x : " + coords.x + " coords y : " + coords.y);
                 nextCommand = "MOVE " + coords.x + " " + coords.y;
             }
-
-            // kamēr bumba nav sprāgusi, izmantot simulateExplosion lai uzzinātu - kur nepieciešams atrasties
-            // kad bumba uzsprāgusi, sākt procesu no jauna
-
-            // Console.Error.WriteLine("Best coord X : " + coords.x + "Best coord Y : " + coords.y);
-            // string nextCommand = "BOMB " + coords.y + " " + coords.x;
-
-            // Console.Error.WriteLine("PRESENT: ");
-            // grid.printGrid("present");
-            // Console.Error.WriteLine("FUTURE: ");
-            // grid.printGrid("future");            
-            // Console.Error.WriteLine("REACHABLE: ");
-            // grid.printGrid("reachable");
   
             Console.WriteLine(nextCommand);
         } 
