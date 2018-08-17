@@ -19,6 +19,7 @@ static class Global
     public const char EMPTY_CELL = '.';
     public const char POWERUP_RANGE = '5';
     public const char POWERUP_EXTRA = '6';
+    public const char BOMB = 'B';
 }
 
 class Game 
@@ -62,42 +63,45 @@ class Game
                 int param1 = int.Parse(inputs[4]);
                 int param2 = int.Parse(inputs[5]);
 
-                if (entityType == 0 && owner == 0) // Mans spēlētājs
+                switch ( entityType )
                 {
-                    myPlayer.position.x = x;
-                    myPlayer.position.y = y;
-                }
+                    case 0 : // player
+                        if (owner == myPlayer.id)
+                        {
+                            myPlayer.position.x = x;
+                            myPlayer.position.y = y;
+                        }
+                        break;
 
-                if (entityType == 1)
-                {
-                    // atrada bumbu
-                    grid.CalculateFutureExplosions
-            (param2, x, y);
-                    if ( owner == 0 )
-                    {
-                        // ja bumba ir mana, tad atrod labāko vietu kur nostāties gaidot sprādzienu
-                        grid.floodFill(myPlayer.position.x, myPlayer.position.y);
-                        Coordinates coordsX = grid.getBestEscape(myPlayer);
-                        Console.WriteLine("MOVE " + coordsX.x + " " + coordsX.y);
-                        check = true;
-                    }
-                    else
-                    {               
-                        // ja citu bumba - uzlikt kur nevar iet un no kā izvairīties
-                    }
-                    // param2 - explosion range for bombs
-                }
+                    case 1 : // bomb
+                        grid.CalculateFutureExplosions(param2, x, y);
+                        grid.changeGridValue(x, y, Global.BOMB);
+                        if ( owner == myPlayer.id )
+                        {
+                            // ja bumba ir mana, tad atrod labāko vietu kur nostāties gaidot sprādzienu
+                            // problēma - var likt tikai vienu bumbu. ja ir power-up, tad škrobīgi
+                            grid.floodFill(myPlayer.position.x, myPlayer.position.y);
+                            Coordinates coordsX = grid.getBestEscape(myPlayer);
+                            Console.WriteLine("MOVE " + coordsX.x + " " + coordsX.y);
+                            check = true;
+                        }
+                        else
+                        {   
 
-                if (entityType == 2)
-                {
-                    if (param1 == 1)
-                    {
-                        grid.changeGridValue(x, y, Global.POWERUP_RANGE); 
-                    } 
-                    else if (param1 == 2)
-                    {
-                        grid.changeGridValue(x, y, Global.POWERUP_EXTRA);
-                    }
+                            // ja citu bumba - uzlikt kur nevar iet un no kā izvairīties
+                        }
+                        break;
+
+                    case 2 : // items
+                        if (param1 == 1)
+                        {
+                            grid.changeGridValue(x, y, Global.POWERUP_RANGE); 
+                        } 
+                        else if (param1 == 2)
+                        {
+                            grid.changeGridValue(x, y, Global.POWERUP_EXTRA);
+                        }
+                        break;
                 }
             }
 
@@ -160,7 +164,7 @@ class Grid
     {
         if ((x < 0) || (x >= Global.WIDTH)) return;
         if ((y < 0) || (y >= Global.HEIGHT)) return;
-        if (reachableGrid[y,x].Equals(Global.EMPTY_CELL))
+        if (reachableGrid[y,x].Equals(Global.EMPTY_CELL) || reachableGrid[y,x].Equals(Global.BOMB))
         {
             reachableGrid[y,x] = Global.REACHABLE;        
 
@@ -455,7 +459,7 @@ class Grid
         {
          for (int j = 0; j < Global.WIDTH; j++) // kolonnas
          {
-             if (reachableGrid[i,j].Equals(Global.REACHABLE))
+             if (reachableGrid[i,j].Equals(Global.REACHABLE) && !presentGrid[i,j].Equals(Global.BOMB))
              {
                 if (adjacentBoxesArray[i,j] == maxCount) 
                 {
@@ -505,7 +509,7 @@ class Grid
         return closest;
     }
 
-     public Coordinates getBestEscape(Player player)
+    public Coordinates getBestEscape(Player player)
     {
         int maxCount = 0;
         List<Coordinates> list = new List<Coordinates>();
@@ -515,15 +519,15 @@ class Grid
 
         for (int i = 0; i < Global.HEIGHT; i++) // rindas
         {
-         for (int j = 0; j < Global.WIDTH; j++) // kolonnas
-         {
-             if (reachableGrid[i,j].Equals(Global.REACHABLE) && !futureGrid[i,j].Equals(Global.EXPLOSION))
-             {
-                    // ja var aiziet, un ja nav bumba 
-                    Coordinates temp = new Coordinates(j,i);
-                    list.Add(temp);
-             }
-         }
+            for (int j = 0; j < Global.WIDTH; j++) // kolonnas
+            {
+                if (reachableGrid[i,j].Equals(Global.REACHABLE) && !futureGrid[i,j].Equals(Global.EXPLOSION))
+                {
+                        // ja var aiziet, un ja nav bumba 
+                        Coordinates temp = new Coordinates(j,i);
+                        list.Add(temp);
+                }
+            }
         }
 
         Coordinates closest = new Coordinates();
@@ -556,7 +560,6 @@ class Player
     public Coordinates position; // var taisīt kā private un ar getteriem/setteriem, bet ko no tā iegūs?
     public char powerUp;
 
-
     public Player (int x, int y)
     {
         position = new Coordinates(x, y);
@@ -572,10 +575,6 @@ class Player
         var dx = position.x - point.x;
         var dy = position.y - point.y;
         return Math.Abs(dx) + Math.Abs(dy);
-    }
-
-    public void returnNextMove()
-    {
     }
 }
 
@@ -594,6 +593,3 @@ class Coordinates
         y = Y;
     }
 }
-
-
-
