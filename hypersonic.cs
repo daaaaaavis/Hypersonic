@@ -71,7 +71,8 @@ class Game
                 if (entityType == 1)
                 {
                     // atrada bumbu
-                    grid.ZeroOutFutureIndexes(param2, x, y);
+                    grid.CalculateFutureExplosions
+            (param2, x, y);
                     if ( owner == 0 )
                     {
                         // ja bumba ir mana, tad atrod labāko vietu kur nostāties gaidot sprādzienu
@@ -103,7 +104,7 @@ class Game
             if (check) continue;
 
             grid.fillAdjacentBoxesArray(2);
-            
+            grid.printAdjacent();
             grid.floodFill(myPlayer.position.x, myPlayer.position.y);
             Coordinates coords = grid.getBestCoordinates(myPlayer); // dabū labākās un "safe" koord. 
 
@@ -206,18 +207,33 @@ class Grid
         {
             for (int i = 0; i < Global.HEIGHT; i++)
             {
-            for (int j = 0; j < Global.WIDTH; j++)
-            {
-                row = row + grids[gridName][i,j] + " ";
-            }
-            Console.Error.WriteLine(row);
-            row = String.Empty;
+                for (int j = 0; j < Global.WIDTH; j++)
+                {
+                    row = row + grids[gridName][i,j] + " ";
+                }
+                Console.Error.WriteLine(row);
+                row = String.Empty;
             }
         }
         else
         {
             Console.Error.WriteLine("Couldn't print out the grid");
         }        
+    }
+
+    public void printAdjacent()
+    {
+        Console.Error.WriteLine("ADJACENT : ");
+        string row = String.Empty;
+        for (int i = 0; i < Global.HEIGHT; i++)
+        {
+            for (int j = 0; j < Global.WIDTH; j++)
+            {
+                row = row + adjacentBoxesArray[i,j] + " ";
+            }
+            Console.Error.WriteLine(row);
+            row = String.Empty;
+        }
     }
 
     public void simulateExplosion(int x, int y, int bombRange)
@@ -321,25 +337,45 @@ class Grid
             for (int k = 1; k < indexUp+1; k++)
             {
                 element = presentGrid[i-k,j];
-                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2)) adjacentCount++;
+                if(element.Equals(Global.WALL) || element.Equals(Global.POWERUP_EXTRA) || element.Equals(Global.POWERUP_RANGE)) break;
+                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2))
+                {
+                    adjacentCount++;
+                    break;
+                } 
             }
 
             for (int k = 1; k < indexDown+1; k++)
             {
                 element = presentGrid[i+k,j];
-                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2)) adjacentCount++;
+                if(element.Equals(Global.WALL) || element.Equals(Global.POWERUP_EXTRA) || element.Equals(Global.POWERUP_RANGE)) break;
+                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2))
+                {
+                    adjacentCount++;
+                    break;
+                } 
             }
 
             for (int k = 1; k < indexLeft+1; k++)
             {
                 element = presentGrid[i,j-k];
-                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2)) adjacentCount++;
+                if(element.Equals(Global.WALL) || element.Equals(Global.POWERUP_EXTRA) || element.Equals(Global.POWERUP_RANGE)) break;
+                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2))
+                {
+                    adjacentCount++;
+                    break;
+                } 
             }
 
             for (int k = 1; k < indexRight+1; k++)
             {
                 element = presentGrid[i,j+k];
-                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2)) adjacentCount++;
+                if(element.Equals(Global.WALL) || element.Equals(Global.POWERUP_EXTRA) || element.Equals(Global.POWERUP_RANGE)) break;
+                if(element.Equals(Global.BOX0) || element.Equals(Global.BOX1) || element.Equals(Global.BOX2))
+                {
+                    adjacentCount++;
+                    break;
+                } 
             }
             //Console.Error.WriteLine("x = " + i + ", y = " + j + ", " + adjacentCount + " Up:" + indexUp + " Down:" + indexDown + " Left:" + indexLeft + " Right:" + indexRight);
             adjacentBoxesArray[i,j] = adjacentCount;
@@ -348,7 +384,7 @@ class Grid
         }
     }
 
-    public void ZeroOutFutureIndexes(int bombRange, int x, int y) // iznuļļo nākotnes bumbas vietas
+    public void CalculateFutureExplosions(int bombRange, int x, int y) // iznuļļo nākotnes bumbas vietas
     {
             int indexUp, indexDown, indexLeft, indexRight; // par cik var iet uz attiecīgo pusi
             // x - kolonna
@@ -365,25 +401,44 @@ class Grid
             for (int k = 1; k < indexUp+1; k++)
             {
                 if (presentGrid[y-k, x].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
-                // if (presentGrid[y-k, x].Equals())
+                if (!presentGrid[y-k, x].Equals(Global.EMPTY_CELL)) // uz attiecīgo pusi ir kaut kāds objekts
+                {
+                    futureGrid[y-k,x] = Global.EXPLOSION;
+                    break;
+                }
                 futureGrid[y-k,x] = Global.EXPLOSION;
             }
  
             for (int k = 1; k < indexDown+1; k++)
             {
                 if (presentGrid[y+k, x].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
+                if (!presentGrid[y+k, x].Equals(Global.EMPTY_CELL)) // uz attiecīgo pusi ir kaut kāds objekts
+                {
+                    futureGrid[y+k,x] = Global.EXPLOSION;
+                    break;
+                }
                 futureGrid[y+k,x] = Global.EXPLOSION;
             }
 
             for (int k = 1; k < indexLeft+1; k++)
             {
                 if (presentGrid[y,x-k].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
+                if (!presentGrid[y, x-k].Equals(Global.EMPTY_CELL)) // uz attiecīgo pusi ir kaut kāds objekts
+                {
+                    futureGrid[y,x-k] = Global.EXPLOSION;
+                    break;
+                }
                 futureGrid[y,x-k] = Global.EXPLOSION;
             }
 
             for (int k = 1; k < indexRight+1; k++)
             {
                 if (presentGrid[y,x+k].Equals(Global.WALL)) break; // uz attiecīgo pusi ir siena
+                if (!presentGrid[y, x+k].Equals(Global.EMPTY_CELL)) // uz attiecīgo pusi ir kaut kāds objekts
+                {
+                    futureGrid[y,x+k] = Global.EXPLOSION;
+                    break;
+                }
                 futureGrid[y,x+k] = Global.EXPLOSION;
             }
 
